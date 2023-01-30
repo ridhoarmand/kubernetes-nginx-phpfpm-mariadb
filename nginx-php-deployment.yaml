@@ -1,0 +1,59 @@
+## konfigurasi yaml kubernetes nginx:latest dan php:fpm
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+            - name: webapp
+              mountPath: /var/www/html
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+        - name: webapp
+          configMap:
+            name: webapp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phpfpm-deployment
+spec:
+  selector:
+    matchLabels:
+      app: phpfpm
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: phpfpm
+    spec:
+      containers:
+        - name: phpfpm
+          image: php:fpm
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - name: webapp
+              mountPath: /var/www/html
+      volumes:
+        - name: webapp
+          configMap:
+            name: webapp

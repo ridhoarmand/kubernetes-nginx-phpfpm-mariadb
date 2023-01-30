@@ -1,0 +1,31 @@
+## konfigurasi service
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  labels:
+    app: nginx
+spec:
+  selector:
+    app: nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30080
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: phpfpm-service
+  labels:
+    app: phpfpm
+spec:
+  selector:
+    app: phpfpm
+  ports:
+    - name: phpfpm
+      port: 9000
+      targetPort: 9000
+  type: ClusterIP

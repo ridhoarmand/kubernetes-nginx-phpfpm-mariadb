@@ -18,7 +18,7 @@ data:
             # as directory, then fall back to displaying a 404.
             try_files $uri $uri/ /index.php?$args;
         }
-        # pass the PHP scripts to FastCGI server listening on php-fpm-service:9000
+        # pass the PHP scripts to FastCGI server listening on phpfpm-service:9000
             location ~ \.php$ {
             fastcgi_split_path_info ^(.+\.php)(/.+)$;
             fastcgi_pass phpfpm-service:9000;

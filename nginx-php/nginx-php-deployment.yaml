@@ -1,4 +1,3 @@
-## konfigurasi yaml kubernetes nginx:latest dan php:fpm
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -47,7 +46,7 @@ spec:
     spec:
       containers:
         - name: phpfpm
-          image: php:fpm
+          image: ridhoarmand/php:8.2-fpm
           ports:
             - containerPort: 9000
           volumeMounts:

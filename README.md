@@ -1,6 +1,27 @@
 # Kubernetes Nginx PHP-FPM
 
-This is a simple example of how to deploy a PHP application using Nginx and PHP-FPM.
+This is a simple example of how to deploy a PHP application using Nginx, PHP-FPM and MariaDB.
+
+Just run the shell script to deploy the application.
+
+```
+sh run.sh
+```
+
+#### run.sh
+
+```
+echo "Starting LEMP Stack"
+echo "Setup Nginx PHP-FPM"
+kubectl apply -f nginx-php/nginx-php-configmap.yaml
+kubectl apply -f nginx-php/nginx-php-deployment.yaml
+kubectl apply -f nginx-php/nginx-php-service.yaml
+echo "Setup MariaDB"
+kubectl apply -f mariadb/mariadb-pvc.yaml
+kubectl apply -f mariadb/mariadb-deployment.yaml
+kubectl apply -f mariadb/mariadb-service.yaml
+echo "Sucsessfully started LEMP Stack"
+```
 
 #### nginx-php-deployment.yaml
 
@@ -53,7 +74,7 @@ spec:
     spec:
       containers:
         - name: phpfpm
-          image: php:fpm
+          image: ridhoarmand/php:8.2-fpm
           ports:
             - containerPort: 9000
           volumeMounts:
@@ -105,7 +126,25 @@ metadata:
 data:
   index.php: |
     <?php
-    phpinfo();
+      echo "Hello World";
+    ?>
+  info.php: |
+    <?php
+      phpinfo();
+    ?>
+  koneksi.php: |
+    <?php
+      $servername = "mariadb-service";
+      $username = "myuser";
+      $password = "mypassword";
+      $dbname = "mydb";
+      // Create connection
+      $conn = mysqli_connect($servername, $username, $password, $dbname);
+      // Check connection
+      if (!$conn) {
+        die("Connection failed: " . mysqli_connect_error());
+      }
+      echo "Connected successfully";
     ?>
 ```
 
@@ -144,7 +183,105 @@ spec:
   type: ClusterIP
 ```
 
+#### mariadb-pvc.yaml
+
+```
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mariadb-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mariadb-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+```
+
+#### mariadb-deployment.yaml
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb-deployment
+spec:
+  selector:
+    matchLabels:
+      app: mariadb
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:latest
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: rootpassword
+            - name: MYSQL_DATABASE
+              value: mydb
+            - name: MYSQL_USER
+              value: myuser
+            - name: MYSQL_PASSWORD
+              value: mypassword
+          volumeMounts:
+            - name: mariadb-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mariadb-data
+          persistentVolumeClaim:
+            claimName: mariadb-data-pvc
+```
+
+#### mariadb-service.yaml
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-service
+  labels:
+    app: mariadb
+spec:
+  selector:
+    app: mariadb
+  ports:
+    - name: mariadb
+      port: 3306
+      targetPort: 3306
+  type: ClusterIP
+```
+
+#### PHP Container Dockerfile
+
+```
+FROM php:fpm
+RUN  docker-php-ext-install pdo_mysql mysqli
+```
+
 ## Results:
 
-![Alt Text](https://i.imgur.com/YzsekAu.png)
-![Alt Text](https://i.imgur.com/YXngk7G.png)
+![Alt Text](https://i.imgur.com/Qi79eyz.png)
+
+![Alt Text](https://i.imgur.com/Tlj1aVv.png)
+
+![Alt Text](https://i.imgur.com/1HobEHZ.png)
+
+![Alt Text](https://i.imgur.com/Rg3U0t6.png)

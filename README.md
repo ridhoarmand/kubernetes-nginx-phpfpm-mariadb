@@ -1,4 +1,4 @@
-# Kubernetes Nginx PHP-FPM
+# Kubernetes Nginx PHP-FPM MariaDB
 
 This is a simple example of how to deploy a PHP application using Nginx, PHP-FPM and MariaDB.
 
